@@ -28,6 +28,17 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 
+from sklearn.model_selection import cross_val_predict
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+
+from imblearn.over_sampling import SMOTE, ADASYN
+from collections import Counter
+from sklearn.svm import LinearSVC
+
 
 # Step 1. Launch the application
 external_stylesheets = ['/stylesheets.css']
@@ -75,26 +86,32 @@ df4 = df1[(df1['Student answer'] == 'Correct')]
 slice = df1.iloc[:,[0, 5, 8, 9, 10]]
 opts = [{'label' : i, 'value' : i} for i in slice]
 
+slice1 = df1.iloc[:,[0, 5, 8, 9, 10]]
+opts1 = [{'label' : i, 'value' : i} for i in slice1]
+
 
 group_labels  = ['Answer duration']
 colors = ['#3c19f0']
 
 # -------------------- university ID and topic ID datasets
-dff = pd.read_csv('users_and_chapters.csv', sep=",")
-dff.fillna(0, inplace=True)
-dff.set_index('userId', inplace=True)
+#df5.shape -> (6423, 1445)
+df5 = pd.read_csv('users_and_chapters.csv', sep=",")
+df5.fillna(0, inplace=True)
+df5.set_index('userId', inplace=True)
 pd.options.display.float_format = '{:,.0f}'.format
 
-dff1 = pd.read_csv('UserUniversity.csv', sep=",")
+#df6.shape -> (13263, 1)
+df6 = pd.read_csv('UserUniversity.csv', sep=",")
 pd.options.display.float_format = '{:,.0f}'.format
+df6.set_index('ID', inplace=True)
 
-dff1.set_index('ID', inplace=True)
-dff1 = dff1.reindex(dff.index)
-dff1.fillna('Others', inplace=True)
-dff1.isna().sum().sum()
+#df7.shape -> (6423, 1) (with 'Others')
+df7 = df6.reindex(df5.index)
+df7.fillna('Others', inplace=True)
+df7.isna().sum().sum()
 
-X = dff
-Y = dff1.values.ravel()
+X = df5
+Y = df7.values.ravel()
 
 # shuffle data
 X, y = shuffle(X, Y, random_state=0)
@@ -334,8 +351,8 @@ app.layout = html.Div([
                 html.Div(
                     children=[
                     Card([
-                    	NamedSlider(
-                    		# Dimension of the embedded space
+                        NamedSlider(
+                            # Dimension of the embedded space
                             name="Number of Dimensions",
                             short="n-components",
                             min=1,
@@ -347,7 +364,7 @@ app.layout = html.Div([
                             },
                         ),
                         NamedSlider(
-                        	# 
+                            # 
                             name="Number of Iterations",
                             short="iterations",
                             min=250,
@@ -359,19 +376,19 @@ app.layout = html.Div([
                             },
                         ),
                         NamedSlider(
-                        	# number of nearest neighbors that is used in other manifold learning algorithms
+                            # number of nearest neighbors that is used in other manifold learning algorithms
                             name="Perplexity",
                             short="perplexity",
                             min=5,
                             max=100,
                             step=None,
-                            val=15,
+                            val=5,
                             marks={i: str(i) for i in [5, 15, 30, 50, 100]},
                         ),
                         NamedSlider(
-                        	# If the learning rate is too high, the data may look like a ‘ball’ with any point approximately 
-                        	# equidistant from its nearest neighbours. If the learning rate is too low, most points may look 
-                        	# compressed in a dense cloud with few outliers.
+                            # If the learning rate is too high, the data may look like a ‘ball’ with any point approximately 
+                            # equidistant from its nearest neighbours. If the learning rate is too low, most points may look 
+                            # compressed in a dense cloud with few outliers.
                             name="Learning Rate",
                             short="learning-rate",
                             min=10,
@@ -394,11 +411,31 @@ app.layout = html.Div([
                     'color': '#3c4861'}
                 ),
             html.Div(
-                className='ten columns',
+                className='sixhalf columns',
                 children=dcc.Graph(
                     id='graph-2d-plot-tsne'
                 )
             ),
+
+            html.Div([
+                html.Div([
+                    html.P("Random Forest classifier considering SMOTE"),
+                    ],
+                    style = {
+                        'padding-top': '20px',
+                        'padding-left': '50px'}
+                ),
+                html.Div(
+                    dcc.Graph(id='predict'),
+                ),            
+            ], 
+            className= 'threehalf columns',
+            style = {
+                'padding-left': '15px',
+                'padding-right': '15px',
+                'backgroundColor' : 'white',
+                'color': '#3c4861'}
+            ), 
         ],  
         className="row",
         style = {
@@ -429,14 +466,15 @@ app.layout = html.Div([
                             ],
                             style = {
                                 'padding-top': '15px',
-                                'padding-right': '20px',
+                                'padding-right': '40px',
                                 'padding-left':'20px'}
                         ),
                         html.Div([
                             dcc.Graph(id='userAnswerCorrect-pie'),
                             ],
                             style = {
-                                'padding-left':'5px'}
+                                'padding-left': '15px',
+                                'padding-right': '30px'}
                         ),            
                     ], 
                     className= 'three columns',
@@ -664,6 +702,51 @@ def LEDDisplay5(selected_data, column):
     Max = round(dff[column].max(), 2)
     return str(Max)
 
+# ------------------------ heatmap
+def heatmap1(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df5.iloc[indices, :]
+    else:
+        dff = df5
+
+    # ----------------------- Prediction -------------------
+    #df8.shape -> (6423, 1) (with '9')
+    df8 = df6.reindex(dff.index)
+    df8.fillna(9, inplace=True)
+    df8.isna().sum().sum()
+    df8['UniversityID'] = df8['UniversityID'].astype(int)
+
+    X1 = dff
+    Y1 = df8.values.ravel()
+    X1, y1 = shuffle(X1, Y1, random_state=0)
+
+    # ------------------------- SMOTE ----------------------
+    # increace the rows of first table from 6423 to 30258 (X1 is new df)
+    X1, y1 = SMOTE().fit_resample(X1, y1)
+
+    # increace the rows of second table from 6423 to 30258 (X2 is new df1) 
+    X2 = df8
+    X2, y1 = shuffle(X2, Y1, random_state=0)
+    X2, y1 = SMOTE().fit_resample(X2, y1)
+
+    #model = MLPClassifier(max_iter=2000)
+    model = RandomForestClassifier(n_estimators=100)
+    y_pred = cross_val_predict(model, X1, y1, cv=10)
+    # calculate accuracy
+    accuracy = accuracy_score(y1, y_pred)
+    # confusion matrix
+    conf_mx = confusion_matrix(y1, y_pred)
+
+    axis_labels =  ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+    fig = ff.create_annotated_heatmap(conf_mx, colorscale='Picnic', x=axis_labels, y=axis_labels)
+    fig.update_layout(title_text="University ID prediction (Avg. accuracy = %.2f)" %(accuracy*100), titlefont=dict(size=15),
+        yaxis_title = "University ID", 
+        height = 349,
+        xaxis=dict(side="bottom",))   
+
+    return fig
 
 # ------------------------pie plot-user answer definition
 def pie1(selected_data, column):
@@ -859,7 +942,7 @@ def display_2d_scatter_plot(n_components,iterations, perplexity, learning_rate):
     tsne_results = tsne.fit_transform(X) 
 
     fig = px.scatter(
-        data_frame = dff,
+        data_frame = df5,
         x= tsne_results[:,0],
         y= tsne_results[:,1],
         color=y, 
@@ -1095,6 +1178,12 @@ def update_N_max(selected_data):
     [Input('graph-2d-plot-tsne', 'selectedData')])
 def update_userAnswerCorrect(selected_data):
     return pie1(selected_data, 'Student answer')
+
+@app.callback(
+    Output('predict', 'figure'),
+    [Input('graph-2d-plot-tsne', 'selectedData')])
+def update_userAnswerCorrect(selected_data):
+    return heatmap1(selected_data, 'UniversityID')
 
 @app.callback(
     Output('questionType-pie', 'figure'),
