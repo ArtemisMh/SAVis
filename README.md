@@ -11,8 +11,8 @@ The student answer duration in the dataset is between 0 and 25941 minutes (432 h
 The focus of this research is to develop a dashboard to interact with and analyze the data, deliver the most relevant information to the teachers and help them to understand the data, and make faster and accurate decisions. Also, defining research questions is an important step to find the road map and speed up the process of creating a dashboard.  Research questions are as follow:
 
 
-RQ1.	How many correct/incorrect answers are there in general? 8276/1724
-RQ2.	How many correct/incorrect answers are there in different time categories? 
+** RQ1.	How many correct/incorrect answers are there in general? 8276/1724
+* RQ2.	How many correct/incorrect answers are there in different time categories? 
 RQ3.	How many correct/incorrect answers are there in each student category?
 RQ4.	How many correct/incorrect answers are there in each topic category?
 RQ5.	How many correct/incorrect answers are there in each question type?
