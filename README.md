@@ -11,20 +11,20 @@ The student answer duration in the dataset is between 0 and 25941 minutes (432 h
 The focus of this research is to develop a dashboard to interact with and analyze the data, deliver the most relevant information to the teachers and help them to understand the data, and make faster and accurate decisions. Also, defining research questions is an important step to find the road map and speed up the process of creating a dashboard.  Research questions are as follow:
 
 
-** RQ1.	How many correct/incorrect answers are there in general? 8276/1724
+* RQ1.	How many correct/incorrect answers are there in general?
 * RQ2.	How many correct/incorrect answers are there in different time categories? 
-RQ3.	How many correct/incorrect answers are there in each student category?
-RQ4.	How many correct/incorrect answers are there in each topic category?
-RQ5.	How many correct/incorrect answers are there in each question type?
-RQ6.	How many correct/incorrect answers are there in each month of year/day of month/hour of day?
-RQ7.	Which topic has the highest correct answers? 
-RQ8.	What are the top 10 topics that students are more interested? 
-RQ9.	Which question type is more interesting for students to answer it? 
-RQ10.	What are the number of correct answers for top 10 topics?
-RQ11.	What is the maximum/minimum time students spend to answer a question?
-RQ12.	What hour of day students are more active?
-RQ13.	What day of month students are more active?
-RQ14.	What month of year students are more active?
+* RQ3.	How many correct/incorrect answers are there in each student category?
+* RQ4.	How many correct/incorrect answers are there in each topic category?
+* RQ5.	How many correct/incorrect answers are there in each question type?
+* RQ6.	How many correct/incorrect answers are there in each month of year/day of month/hour of day?
+* RQ7.	Which topic has the highest correct answers? 
+* RQ8.	What are the top 10 topics that students are more interested? 
+* RQ9.	Which question type is more interesting for students to answer it? 
+* RQ10.	What are the number of correct answers for top 10 topics?
+* RQ11.	What is the maximum/minimum time students spend to answer a question?
+* RQ12.	What hour of day students are more active?
+* RQ13.	What day of month students are more active?
+* RQ14.	What month of year students are more active?
 
 
 # Proposed Dashboard
