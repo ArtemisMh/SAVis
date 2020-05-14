@@ -400,7 +400,7 @@ app.layout = html.Div([
                     ],
                     style = {
                         'padding-top': '20px',
-                        'padding-left': '150px'}
+                        'padding-left': '180px'}
                 ),
                 html.Div(
                     dcc.Graph(id='predict'),
@@ -738,7 +738,7 @@ def heatmap1(selected_data, column):
     conf_mx = confusion_matrix(y, y_pred)
     conf_mx1 = (conf_mx/number*100).round()
     fig = ff.create_annotated_heatmap(conf_mx1, colorscale='Picnic', x=axis_labels, y=axis_labels, showscale= True)
-    fig.update_layout(title_text="Monthly activity prediction (Avg. accuracy = %.2f)" %(accuracy*100) +"%", titlefont=dict(size=15),
+    fig.update_layout(title_text="Prediction of students monthly activity (Avg. accuracy = %.2f)" %(accuracy*100) +"%", titlefont=dict(size=15),
         yaxis_title = "Month", 
         height = 349,
         xaxis=dict(side="bottom",))  
@@ -1032,6 +1032,34 @@ def update_image_src1(input1, input2):
     else:
         dff = df1
 
+    dff1 = dff.sort_values('Student ID', ascending=True)
+    if  input1 == 'Student ID':
+        fig = px.scatter(
+            data_frame = dff1,
+            x="Student ID",
+            color="Student answer",
+            #size="Answer duration", 
+            height = 400,
+            size_max=20, 
+            hover_data=dff1.columns,
+            title = 'Students answers according to student ID',
+            labels ={'Student ID':'Student ID'}
+        )
+
+    dff1 = dff.sort_values('Topic ID', ascending=True)
+    if  input1 == 'Topic ID':
+        fig = px.scatter(
+            data_frame = dff1,
+            x="Topic ID",
+            color="Student answer",
+            #size="Answer duration", 
+            height = 400,
+            size_max=20,
+            log_x=True, 
+            hover_data=dff1.columns,
+            title = 'Students answers according to topic ID',
+            labels ={'Topic ID':'Topic ID'}
+        )
 
     dff1 = dff.sort_values('Daily activity', ascending=True)
     if  input1 == 'Daily activity':
@@ -1061,35 +1089,6 @@ def update_image_src1(input1, input2):
             hover_data=dff1.columns,
             title = 'Students answers according to student hourly activity',
             labels ={'Hourly activity':'Hour'}
-        )
-
-    dff1 = dff.sort_values('Topic ID', ascending=True)
-    if  input1 == 'Topic ID':
-        fig = px.scatter(
-            data_frame = dff1,
-            x="Topic ID",
-            color="Student answer",
-            #size="Answer duration", 
-            height = 400,
-            size_max=20,
-            log_x=True, 
-            hover_data=dff1.columns,
-            title = 'Students answers according to topic ID',
-            labels ={'Topic ID':'Topic ID'}
-        )
-
-    dff1 = dff.sort_values('Student ID', ascending=True)
-    if  input1 == 'Student ID':
-        fig = px.scatter(
-            data_frame = dff1,
-            x="Student ID",
-            color="Student answer",
-            #size="Answer duration", 
-            height = 400,
-            size_max=20, 
-            hover_data=dff1.columns,
-            title = 'Students answers according to student ID',
-            labels ={'Student ID':'Student ID'}
         )
     return fig
 
