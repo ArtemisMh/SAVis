@@ -67,9 +67,11 @@
   .three.columns                      { width: calc(100% / (12 / 3)); }
   .threehalf.columns                  { width: calc(100% / (12 / 3.5)); }
   .four.columns                       { width: calc(100% / (12 / 4)); }
+  .fourhalf.columns                   { width: calc(100% / (12 / 4.5)); }
   .five.columns                       { width: calc(100% / (12 / 5)); }
   .fivehalf.columns                   { width: calc(100% / (12 / 5.5)); }
   .six.columns                        { width: calc(100% / (12 / 6)); }
+  .sixhalf.columns                    { width: calc(100% / (12 / 6.5)); }
   .seven.columns                      { width: calc(100% / (12 / 7)); }
   .eight.columns                      { width: calc(100% / (12 / 8)); }
   .nine.columns                       { width: calc(100% / (12 / 9)); }
