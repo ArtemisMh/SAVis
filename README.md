@@ -1,4 +1,4 @@
-Dashboard by Artemis, Spring 2020
+Dashboard produced by Artemis Mohseni, Spring 2020
 ---------------------------------------
 
 # Short summary about Dataset
