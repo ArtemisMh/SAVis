@@ -49,13 +49,12 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 df = pd.read_csv('cleaned_answer_material.csv', sep=",", 
 	usecols=['userId','action','questionType','resourceName','resourceType', 'textMarkerChapterId','userAnswerCorrect','MinuserAnswerDuration',
     'EventMonth','EventDay','EventHour'], low_memory=False)
-
 df = df.rename(columns={"userId": "Student ID", "action":"Action","questionType": "Question type", "resourceName":"Resource name", "resourceType":"Resource type", 
     "textMarkerChapterId": "Topic ID", "userAnswerCorrect":"Student answer", "MinuserAnswerDuration": "Answer duration", "EventMonth": "Monthly activity", 
     "EventDay": "Daily activity", "EventHour": "Hourly activity"})
-
 df = df[np.isfinite(df['Topic ID'])]
 df['Topic ID'] = df['Topic ID'].astype(int)
+df['Monthly activity'] = df['Monthly activity'].astype(int)
 
 df1 =  df[(df['Answer duration'] > 0) & (df['Answer duration'] < 20)]
 df1 =  df1[(df1['Topic ID'] > 600) & (df1['Topic ID'] < 3500)]
@@ -66,13 +65,9 @@ df1['Answer duration'] = round(df1['Answer duration'], 2)
 for i in range(10000):
     df1 = df1.sample(10000)
 
+df1 = df1.sort_values('Monthly activity', ascending=True)
 T = df1['Student ID'][df1['Student answer'] == 'Correct'].count()
 F = df1['Student ID'][df1['Student answer'] == 'Incorrect'].count()
-
-
-df_predict = df1.iloc[:,[0, 5, 6, 7, 8, 9, 10]]
-df_predict['Student answer'] = df_predict['Student answer'].replace({'Correct': 1, 'Incorrect': 0})
-df_predict['Monthly activity'] = df_predict['Monthly activity'].replace({1: '1', 2:'2', 3:'3', 4:'4', 5:'5', 6:'6', 7:'7', 8:'8', 9:'9', 10:'10', 11:'11', 12:'12'})
 
 
 # dropdown options
@@ -83,12 +78,14 @@ group_labels  = ['Answer duration']
 colors = ['#3c19f0']
 axis_labels =  ['1', '2', '3', '4', '5', '6', '7', '8', '9' , '10', '11', '12']
 
+df_predict = df1.iloc[:,[0, 5, 6, 7, 8, 9, 10]]
+df_predict['Student answer'] = df_predict['Student answer'].replace({'Correct': 1, 'Incorrect': 0})
 
-df2 = df_predict
-df3 = df_predict.iloc[:,[4]]
+df_X = df_predict
+df_Y = df_predict.iloc[:,[4]]
 
-X = df2
-Y = df3.values.ravel()
+X = df_X
+Y = df_Y.values.ravel()
 
 # shuffle data
 X, y = shuffle(X, Y, random_state=0)
@@ -96,7 +93,6 @@ X, y = shuffle(X, Y, random_state=0)
 # ---------------- Methods for creating components in the layout code
 def Card(children, **kwargs):
     return html.Section(children, className="card-style")
-
 
 def NamedSlider(name, short, min, max, step, val, marks=None):
     if marks:
@@ -324,7 +320,7 @@ app.layout = html.Div([
     html.Div([ 
         html.Div([
             html.Div([
-                html.H6("T-SNE Parameters", id="tsne_h4"),
+                html.H6("T-SNE Parameters"),
                 html.Div(
                     children=[
                     Card([
@@ -427,7 +423,7 @@ app.layout = html.Div([
 
     dcc.Tabs([
         dcc.Tab(label='Student Answer', children=[
-            # --------------- scatter plot and pie chart and dropdown
+            # --------------- scatter plots, pie chart and dropdown
             html.Div([ 
                 html.Div([
                     html.Div(
@@ -473,7 +469,7 @@ app.layout = html.Div([
         ]),
 
     	dcc.Tab(label='General Distribution', children=[
-            # --------------- main histogram and Radio boxes
+            # --------------- histograms and Radio boxes
             html.Div([       
                 html.Div([
                 	html.Div([
@@ -516,7 +512,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Answer Duration', children=[
-            # --------------- distribution and scatter plots
+            # --------------- Scatter plots and distribution plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -547,7 +543,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Topic Distribution', children=[
-            # ---------------  histograms and distribution plots
+            # ---------------  histograms and scatter plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -577,7 +573,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Activity', children=[
-            # --------------- box and pie plots
+            # --------------- Pie charts and box plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -679,7 +675,7 @@ def LEDDisplay5(selected_data, column):
     Max = round(dff[column].max(), 2)
     return str(Max)
 
-# ------------------ connecting sliders to TSNE
+# ------------------ sliders to TSNE
 @app.callback(
     Output("graph-2d-plot-tsne", "figure"),
     [
@@ -701,17 +697,18 @@ def display_2d_scatter_plot(n_components,iterations, perplexity, learning_rate):
     tsne_results = tsne.fit_transform(X) 
 
     fig = px.scatter(
-        data_frame = df2,
+        data_frame = df_X,
         x= tsne_results[:,0],
         y= tsne_results[:,1],
-        color=y, 
+        color= df1['Monthly activity'],
         height = 400,
         title = 'T-SNE for student monthly activity',
-        labels ={'x':'', 'y':''}
+        labels ={'x':'', 'y':''},
+        color_continuous_scale='Picnic'
     )   
     return fig
 
-# ------------------------ heatmap
+# ------------------------ Heatmap
 def heatmap1(selected_data, column):
     if selected_data:
         indices = [point['pointIndex'] for point in selected_data['points']]
@@ -719,16 +716,16 @@ def heatmap1(selected_data, column):
     else:
         dff = df1
 
-    df2 = df_predict
+    df_X = df_predict
 
-    df3 = df_predict.iloc[:,[4]]
+    df_Y = df_predict.iloc[:,[4]]
 
-    X = df2
-    Y = df3.values.ravel()
+    X = df_X
+    Y = df_Y.values.ravel()
 
     # shuffle data
     X, y = shuffle(X, Y, random_state=0)
-    number = df2[column].value_counts().max()
+    number = df_X[column].value_counts().max()
 
     model = RandomForestClassifier(n_estimators=100)
     y_pred = cross_val_predict(model, X, y, cv=10)
@@ -744,284 +741,7 @@ def heatmap1(selected_data, column):
         xaxis=dict(side="bottom",))  
     return fig
 
-# ------------------------pie plot-user answer definition
-def pie1(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-    fig = px.pie(
-        data_frame = dff,
-        names = column,
-        hole = .3,
-        height = 304,
-        title = 'Students answers (%)',
-    )
-    return fig
-
-# ------------------------Scatter plots with slider definition
-def scatter1(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    dff['Student answer'] = dff['Student answer'].replace({1:'Correct', 0:'Incorrect'})
-    dff['Monthly activity'] = dff['Monthly activity'].replace({1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 
-        7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'})
-
-    fig = px.scatter(
-        data_frame = dff,
-        x="Answer duration", 
-        y="Topic ID", 
-        animation_frame="Monthly activity", 
-        animation_group="Daily activity",
-        size="Answer duration", 
-        color="Student answer", 
-        hover_name="Student ID",
-        facet_col="Student answer",
-        log_x=True, 
-        size_max=35, 
-        range_x=[0.01,20], 
-        range_y=[600,3501],
-        height = 400,
-        title = 'Students answer duration',
-        labels ={'Answer duration':'Students answer duration (min)', 'Topic ID':'Topic ID'}
-    )   
-    return fig
-
-# ------------------------histogram_ user definition
-def histogram1(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    fig = px.histogram(
-            data_frame = dff,
-            x="Topic ID",
-            y= column,
-            nbins = 30,
-            title = 'Topic distribution for student answers',
-            labels ={'Topic ID':'Topic IDs', 'Student answer':'student answers'},
-            height = 400
-        ) 
-    return fig
-
-# ------------------------histogram_ correct answer definition
-def histogram2(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    dff = dff[(dff['Student answer'] == 'Correct')]
-
-    fig = px.histogram(
-            data_frame = dff,
-            x= "Topic ID",
-            y= column,
-            nbins = 30,
-            title = 'Topic distribution for correct answers',
-            labels ={'Topic ID':'Topic IDs', 'Student answer':'student correct answers'},
-            height = 400
-        ) 
-    return fig
-
-# ------------------------bar plot top 10 definition
-def bar2(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    trace_1 = go.Scatter(
-                    x=sorted(dff['Topic ID'].value_counts().head(10).index), 
-                    y=dff['Topic ID'].value_counts().head(10),
-                    mode='lines+markers',
-                    name = 'Student answers',
-                    opacity=0.8,
-                    marker={
-                        'size': 9})
-    trace_2 = go.Scatter(
-                        x = sorted(dff['Topic ID'][dff['Student answer'] == 'Correct'].value_counts().head(10).index), 
-                        y = dff['Topic ID'][dff['Student answer'] == 'Correct'].value_counts().head(10), 
-                        mode='lines+markers',
-                        name = 'Correct answers',
-                        opacity=0.8,
-                        marker={
-                            'size': 9})
-
-    layout = go.Layout(title = 'Top 10 topics', 
-        hovermode = 'closest', 
-        height= 400, 
-        xaxis_title="Topic IDs",
-        yaxis_title="Count of student answers")
-    fig = go.Figure(data = [trace_1, trace_2], layout = layout)
-    return fig
-
-# ------------------------box plot_Monthly acitvity definition
-def box(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    dff['Student answer'] = dff['Student answer'].replace({1:'Correct', 0:'Incorrect'})
-    dff['Monthly activity'] = dff['Monthly activity'].replace({1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 
-        7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'})
-
-    fig = px.box(
-        data_frame = dff,
-        x = dff[column],
-        y = dff['Topic ID'],
-        color= dff['Student answer'],
-        height = 400,
-        title= 'Distribution of students activity per month',
-        labels ={'Monthly activity':'Students activity per month', 'Topic ID':'Topic IDs'},
-    )
-    return fig
-
-# ------------------------pie plot-monthly activity definition
-def pie2(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    dff['Student answer'] = dff['Student answer'].replace({1:'Correct', 0:'Incorrect'})
-    dff['Monthly activity'] = dff['Monthly activity'].replace({1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 
-        7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'})
-
-    fig = px.pie(
-        data_frame = dff,
-        names = column,
-        hole = .3,
-        height = 400,
-        title = 'Students activity per month (%)',
-    )
-    return fig
-
-# ------------------------pie questionType definition
-def pie3(selected_data, column):
-    if selected_data:
-        indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-    fig = px.pie(
-        data_frame = dff,
-        names = column,
-        hole = .3,
-        height = 400,
-        title = 'Question types (%)',
-    )
-    return fig
-
-# ------------------ connecting dropdown to Bar plot
-@app.callback(Output('bar1', 'figure'),
-             [Input('items', 'value'), Input('graph-2d-plot-tsne', 'selectedData')])
-
-def update_image_src(input1, input2):
-    if input2:
-        indices = [point['pointIndex'] for point in input2['points']]
-        dff = df1.iloc[indices, :]
-    else:
-        dff = df1
-
-    if  input1 == 'Monthly activity':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Monthly activity",
-	        color="Student answer", 
-	        marginal="rug", 
-	        hover_data=dff.columns,
-	        labels ={'Monthly activity':'Month'},
-            title = 'Distribution of studnets monthly activity',
-	        height = 400
-	    )
-
-    if  input1 == 'Daily activity':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Daily activity",
-	        color="Student answer", 
-	        marginal="rug", 
-	        hover_data=dff.columns,
-	        labels ={'Daily activity':'Day'},
-            title = 'Distribution of studnets daily activity',
-	        height = 400
-	    )
-
-    if  input1 == 'Hourly activity':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Hourly activity",
-	        color="Student answer", 
-	        marginal="rug", 
-            hover_data=dff.columns,
-	        labels ={'Hourly activity':'Hour'},
-            title = 'Distribution of studnets hourly activity',
-	        height = 400
-	    )
-
-    if  input1 == 'Answer duration':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Answer duration",
-	        color="Student answer", 
-	        marginal="rug", 
-            hover_data=dff.columns,
-	        labels ={'Answer duration':'Answer duration'},
-            title = 'Distribution of student answer duration',
-	        height = 400
-	    )
-
-    if  input1 == 'Topic ID':
-        fig = px.histogram(
-            data_frame = dff,
-            x="Topic ID",
-            color="Student answer", 
-            marginal="rug", 
-            hover_data=dff.columns,
-            labels ={'Topic ID':'Topic ID'},
-            title = 'Distribution of topic ID',
-            height = 400
-        )
-  
-    if  input1 == 'Student ID':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Student ID",
-	        color="Student answer", 
-	        marginal="rug", 
-            hover_data=dff.columns,
-	        labels ={'Student ID':'Student ID'},
-            title = 'Distribution of student ID',
-	        height = 400
-	    )
-
-    if  input1 == 'Question type':
-        fig = px.histogram(
-	        data_frame = dff,
-	        x="Question type",
-	        color="Student answer", 
-	        marginal="rug", 
-	        labels ={'Question type':'Question type'},
-            title = 'Distribution of question type',
-	        hover_data=dff.columns,
-	        height = 400
-	    )    
-    return fig
-
-# ------------------ connecting dropdown to scatter plot
+# ------------------ Dropdown to scatter plot - 1st tab: student answer
 @app.callback(Output('cluster1', 'figure'),
              [Input('opt1', 'value'), Input('graph-2d-plot-tsne', 'selectedData')])
 
@@ -1092,7 +812,273 @@ def update_image_src1(input1, input2):
         )
     return fig
 
-# ------------------ Bar plot to LEDDisplays
+
+# ------------------------ pie chart - 1st tab: student answer
+def pie1(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+    fig = px.pie(
+        data_frame = dff,
+        names = column,
+        hole = .3,
+        height = 304,
+        title = 'Students answers (%)',
+    )
+    return fig
+
+# ------------------ Dropdown to Bar plot - 2nd tab: general distribution
+@app.callback(Output('bar1', 'figure'),
+             [Input('items', 'value'), Input('graph-2d-plot-tsne', 'selectedData')])
+
+def update_image_src2(input1, input2):
+    if input2:
+        indices = [point['pointIndex'] for point in input2['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    if  input1 == 'Monthly activity':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Monthly activity",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Monthly activity':'Month'},
+            title = 'Distribution of studnets monthly activity',
+            height = 400
+        )
+
+    if  input1 == 'Daily activity':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Daily activity",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Daily activity':'Day'},
+            title = 'Distribution of studnets daily activity',
+            height = 400
+        )
+
+    if  input1 == 'Hourly activity':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Hourly activity",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Hourly activity':'Hour'},
+            title = 'Distribution of studnets hourly activity',
+            height = 400
+        )
+
+    if  input1 == 'Answer duration':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Answer duration",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Answer duration':'Answer duration'},
+            title = 'Distribution of student answer duration',
+            height = 400
+        )
+
+    if  input1 == 'Topic ID':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Topic ID",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Topic ID':'Topic ID'},
+            title = 'Distribution of topic ID',
+            height = 400
+        )
+  
+    if  input1 == 'Student ID':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Student ID",
+            color="Student answer", 
+            marginal="rug", 
+            hover_data=dff.columns,
+            labels ={'Student ID':'Student ID'},
+            title = 'Distribution of student ID',
+            height = 400
+        )
+
+    if  input1 == 'Question type':
+        fig = px.histogram(
+            data_frame = dff,
+            x="Question type",
+            color="Student answer", 
+            marginal="rug", 
+            labels ={'Question type':'Question type'},
+            title = 'Distribution of question type',
+            hover_data=dff.columns,
+            height = 400
+        )    
+    return fig
+
+# ------------------------ Scatter plots - 3rd tab: Answer duration
+def scatter1(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    fig = px.scatter(
+        data_frame = dff,
+        x="Answer duration", 
+        y="Topic ID", 
+        animation_frame="Monthly activity", 
+        animation_group="Daily activity",
+        size="Answer duration", 
+        color="Student answer", 
+        hover_name="Student ID",
+        facet_col="Student answer",
+        log_x=True, 
+        size_max=35, 
+        range_x=[0.01,20], 
+        range_y=[600,3501],
+        height = 400,
+        title = 'Students answer duration',
+        labels ={'Answer duration':'Students answer duration (min)', 'Topic ID':'Topic ID'}
+    )   
+    return fig
+
+# ------------------------histogram - topic distribution for student answers - 4th tab: topic distribution
+def histogram1(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    fig = px.histogram(
+            data_frame = dff,
+            x="Topic ID",
+            y= column,
+            nbins = 30,
+            title = 'Topic distribution for student answers',
+            labels ={'Topic ID':'Topic IDs', 'Student answer':'student answers'},
+            height = 400
+        ) 
+    return fig
+
+# ------------------------histogram - topic distribution for correct answers - 4th tab: topic distribution
+def histogram2(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    dff1 = dff[(dff[column] == 'Correct')]
+    fig = px.histogram(
+            data_frame = dff1,
+            x= "Topic ID",
+            y= column,
+            nbins = 30,
+            title = 'Topic distribution for correct answers',
+            labels ={'Topic ID':'Topic IDs', 'Student answer':'student correct answers'},
+            height = 400
+        ) 
+    return fig
+
+# ------------------------bar plot top 10 definition - 4th tab: topic distribution
+def bar2(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    trace_1 = go.Scatter(
+                    x=sorted(dff['Topic ID'].value_counts().head(10).index), 
+                    y=dff['Topic ID'].value_counts().head(10),
+                    mode='lines+markers',
+                    name = 'Student answers',
+                    opacity=0.8,
+                    marker={
+                        'size': 9})
+    trace_2 = go.Scatter(
+                        x = sorted(dff['Topic ID'][dff['Student answer'] == 'Correct'].value_counts().head(10).index), 
+                        y = dff['Topic ID'][dff['Student answer'] == 'Correct'].value_counts().head(10), 
+                        mode='lines+markers',
+                        name = 'Correct answers',
+                        opacity=0.8,
+                        marker={
+                            'size': 9})
+
+    layout = go.Layout(title = 'Top 10 topics', 
+        hovermode = 'closest', 
+        height= 400, 
+        xaxis_title="Topic IDs",
+        yaxis_title="Count of student answers")
+    fig = go.Figure(data = [trace_1, trace_2], layout = layout)
+    return fig
+
+# ------------------------pie plot-monthly activity definition - 5th tab: Activity
+def pie2(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+    fig = px.pie(
+        data_frame = dff,
+        names = column,
+        hole = .3,
+        height = 400,
+        title = 'Students activity per month (%)',
+    )
+    return fig
+
+# ------------------------pie questionType definition - 5th tab: Activity
+def pie3(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+    fig = px.pie(
+        data_frame = dff,
+        names = column,
+        hole = .3,
+        height = 400,
+        title = 'Question types (%)',
+    )
+    return fig
+
+# ------------------------box plot_Monthly acitvity definition - 5th tab: Activity
+def box(selected_data, column):
+    if selected_data:
+        indices = [point['pointIndex'] for point in selected_data['points']]
+        dff = df1.iloc[indices, :]
+    else:
+        dff = df1
+
+
+    fig = px.box(
+        data_frame = dff,
+        x = dff[column],
+        y = dff['Topic ID'],
+        color= dff['Student answer'],
+        height = 400,
+        title= 'Distribution of students activity per month',
+        labels ={'Monthly activity':'Students activity per month', 'Topic ID':'Topic IDs'},
+    )
+    return fig
+
+# ------------------ T-SNE to LEDDisplays
 @app.callback(
     Output('operator-Student', 'value'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
@@ -1129,34 +1115,29 @@ def update_N_min(selected_data):
 def update_N_max(selected_data):
     return LEDDisplay5(selected_data, 'Answer duration')
 
-
-# ------------------ Bar plot to first pie chart
-@app.callback(
-    Output('userAnswerCorrect-pie', 'figure'),
-    [Input('graph-2d-plot-tsne', 'selectedData')])
-def update_userAnswerCorrect(selected_data):
-    return pie1(selected_data, 'Student answer')
-
+# ------------------ T-SNE to heatmap
 @app.callback(
     Output('predict', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
 def update_userAnswerCorrect(selected_data):
     return heatmap1(selected_data, 'Monthly activity')
 
+# ------------------ T-SNE to pie chart - 1st tab: student answer
 @app.callback(
-    Output('questionType-pie', 'figure'),
+    Output('userAnswerCorrect-pie', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
-def update_QT(selected_data):
-    return pie3(selected_data, 'Question type')
+def update_userAnswerCorrect(selected_data):
+    return pie1(selected_data, 'Student answer')
 
-# ------------------ Bar plot to Scatter plot
+
+# ------------------ T-SNE to Scatter plot - 3rd tab: Answer duration
 @app.callback(
     Output('MinuserAnswerDuration-scatter', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
 def update_MinuserAnswerDuration(selected_data):
     return scatter1(selected_data, 'Answer duration')
 
-# ------------------ Bar plot to histograms 
+# ------------------ T-SNE to histograms and bar- 4th tab: topic distribution
 @app.callback(
     Output('StudentAnswer-histogram', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
@@ -1175,19 +1156,24 @@ def update_Topic_CorrectAnswer(selected_data):
 def update_top10_StudentAnswer(selected_data):
     return bar2(selected_data, 'Topic ID')
 
-# ------------------ Bar plot to box plot
-@app.callback(
-    Output('EventMonth-box', 'figure'),
-    [Input('graph-2d-plot-tsne', 'selectedData')])
-def update_EventMonth(selected_data):
-    return box(selected_data, 'Monthly activity')
-
-# ------------------ Bar plot to pie plots
+# ------------------ T-SNE to pie charts and box plot- 5th tab: Activity
 @app.callback(
     Output('EventMonth-pie', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
 def update_EventMonth_pie(selected_data):
     return pie2(selected_data, 'Monthly activity')
+
+@app.callback(
+    Output('questionType-pie', 'figure'),
+    [Input('graph-2d-plot-tsne', 'selectedData')])
+def update_QT(selected_data):
+    return pie3(selected_data, 'Question type')
+
+@app.callback(
+    Output('EventMonth-box', 'figure'),
+    [Input('graph-2d-plot-tsne', 'selectedData')])
+def update_EventMonth(selected_data):
+    return box(selected_data, 'Monthly activity')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
