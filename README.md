@@ -10,26 +10,29 @@ The student answer duration in the dataset is between 0 and 25941 minutes (432 h
 # Goal of Developing a Dashboard
 The focus of this research is to develop a dashboard to interact with and analyze the data, deliver the most relevant information to the teachers and help them to understand the data, and make faster and accurate decisions. Also, defining research questions is an important step to find the road map and speed up the process of creating a dashboard.  Research questions are as follow:
 
-RQ1.	How many correct and incorrect answers are there in general? 
-RQ2.	What are the maximum and minimum time students spend to answer a question?
-RQ3.	How many correct and incorrect answers are there for each student? 
-RQ4.	How many correct and incorrect answers are there for every topic? 
-RQ5.	How many correct and incorrect answers are there per day? 
-RQ6.	How many correct and incorrect answers are there per hour? 
-RQ7.	What are the percentages of correct and incorrect answers in general?
-RQ8.	How many correct and incorrect answers are there in different time categories? 
-RQ9.	How many correct and incorrect answers are there in each student category?
-RQ10.	How many correct and incorrect answers are there in each topic category?
-RQ11.	How many correct and incorrect answers are there in each question type?
-RQ12.	How many correct and incorrect answers are there in each month of year/day of month/hour of day?
-RQ13.	What hour of day students are more active?
-RQ14.	What day of month students are more active?
-RQ15.	What month of year students are more active?
-RQ16.	Which topic has the highest number of correct answers? 
-RQ17.	What are the top 10 topics that students are more interested? 
-RQ18.	What is the number of correct answers for top 10 topics?
-RQ19.	Which question type is more interesting for students to answer it? 
-RQ20.	What is the percentage of students’ activities per month?
+
+How many correct and incorrect answers are there in general? 
+What are the maximum and minimum time students spend to answer a question?
+How many correct and incorrect answers are there for each student? 
+How many correct and incorrect answers are there for every topic? 
+How many correct and incorrect answers are there per day? 
+How many correct and incorrect answers are there per hour? 
+What are the percentages of correct and incorrect answers in general?
+How many correct and incorrect answers are there in different time categories? 
+How many correct and incorrect answers are there in each student category?
+How many correct and incorrect answers are there in each topic category?
+How many correct and incorrect answers are there in each question type?
+How many correct and incorrect answers are there in each month of year/day of month/hour of day?
+What hour of day students are more active?
+What day of month students are more active?
+What month of year students are more active?
+Which topic has the highest number of correct answers? 
+What are the top 10 topics that students are more interested? 
+What is the number of correct answers for top 10 topics?
+Which question type is more interesting for students to answer it? 
+What is the percentage of students’ activities per month?
+
+
 
 
 # Proposed Dashboard
