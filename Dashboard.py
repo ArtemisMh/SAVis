@@ -735,7 +735,7 @@ def heatmap1(selected_data, column):
     conf_mx = confusion_matrix(y, y_pred)
     conf_mx1 = (conf_mx/number*100).round()
     fig = ff.create_annotated_heatmap(conf_mx1, colorscale='Picnic', x=axis_labels, y=axis_labels, showscale= True)
-    fig.update_layout(title_text="Prediction of students monthly activity (Avg. accuracy = %.2f)" %(accuracy*100) +"%", titlefont=dict(size=15),
+    fig.update_layout(title_text="Classification accuracy for students monthly activities = %.2f" %(accuracy*100) +"%", titlefont=dict(size=15),
         yaxis_title = "Month", 
         height = 349,
         xaxis=dict(side="bottom",))  
