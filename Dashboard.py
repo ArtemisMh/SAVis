@@ -47,9 +47,9 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Step 2. Import the dataset
 df = pd.read_csv('cleaned_answer_material.csv', sep=",", 
-	usecols=['userId','action','questionType','resourceName','resourceType', 'textMarkerChapterId','userAnswerCorrect','MinuserAnswerDuration',
+	usecols=['userId','questionType','resourceName','resourceType', 'textMarkerChapterId','userAnswerCorrect','MinuserAnswerDuration',
     'EventMonth','EventDay','EventHour'], low_memory=False)
-df = df.rename(columns={"userId": "Student ID", "action":"Action","questionType": "Question type", "resourceName":"Resource name", "resourceType":"Resource type", 
+df = df.rename(columns={"userId": "Student ID", "questionType": "Question type", "resourceName":"Resource name", "resourceType":"Resource type", 
     "textMarkerChapterId": "Topic ID", "userAnswerCorrect":"Student answer", "MinuserAnswerDuration": "Answer duration", "EventMonth": "Monthly activity", 
     "EventDay": "Daily activity", "EventHour": "Hourly activity"})
 df = df[np.isfinite(df['Topic ID'])]
@@ -69,23 +69,48 @@ df1 = df1.sort_values('Monthly activity', ascending=True)
 T = df1['Student ID'][df1['Student answer'] == 'Correct'].count()
 F = df1['Student ID'][df1['Student answer'] == 'Incorrect'].count()
 
+df2 = df1.iloc[:,[0,5]]
+df2.set_index('Student ID', inplace=True)
+
+sample_means = []
+for i in range(100):
+    sample = df1['Answer duration'].sample(100)
+    stat1, p1 = ttest_1samp(sample, 1)
+    sample_means.append(sample.mean())
+
 
 # dropdown options
-slice = df1.iloc[:,[0, 5, 9, 10]]
+slice = df1.iloc[:,[0, 4, 7, 8, 9]]
 opts = [{'label' : i, 'value' : i} for i in slice]
 
 group_labels  = ['Answer duration']
 colors = ['#3c19f0']
-axis_labels =  ['1', '2', '3', '4', '5', '6', '7', '8', '9' , '10', '11', '12']
+axis_labels =  ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-df_predict = df1.iloc[:,[0, 5, 6, 7, 8, 9, 10]]
-df_predict['Student answer'] = df_predict['Student answer'].replace({'Correct': 1, 'Incorrect': 0})
+# -------------------- university ID and topic ID datasets
+#df5.shape -> (6423, 1445)
+df5 = pd.read_csv('users_and_chapters.csv', sep=",")
+pd.options.display.float_format = '{:,.0f}'.format
+df5.set_index('userId', inplace=True)
 
-df_X = df_predict
-df_Y = df_predict.iloc[:,[4]]
+#df5.shape -> (10000, 1445)
+df5 = df5.reindex(df2.index)
+df5.fillna(0 , inplace=True)
+df5.isna().sum().sum()
+df5
 
-X = df_X
-Y = df_Y.values.ravel()
+#df6.shape -> (13263, 1)
+df6 = pd.read_csv('UserUniversity.csv', sep=",")
+pd.options.display.float_format = '{:,.0f}'.format
+df6.set_index('ID', inplace=True)
+
+#df7.shape -> (10000, 1) (with 'Others')
+df7 = df6.reindex(df2.index)
+df7.fillna(9 , inplace=True)
+df7.isna().sum().sum()
+
+X = df5
+Y = df7.values.ravel()
 
 # shuffle data
 X, y = shuffle(X, Y, random_state=0)
@@ -93,6 +118,7 @@ X, y = shuffle(X, Y, random_state=0)
 # ---------------- Methods for creating components in the layout code
 def Card(children, **kwargs):
     return html.Section(children, className="card-style")
+
 
 def NamedSlider(name, short, min, max, step, val, marks=None):
     if marks:
@@ -143,23 +169,11 @@ app.layout = html.Div([
     # ----------------- Header
     html.Div([
 		html.Div([
-		    html.H1(children='An Inteactive Dashboard for Educational Datasets', className='eleven columns'),
-		    html.Img(
-		        src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Linneuniversitetet_logo.png",
-		        className='one column',
-		        style={
-		            'height': '7%',
-		            'width': '7%',
-		            'float': 'right',
-		            'position': 'relative',
-		            'padding-top': 0,
-		            'padding-right': 0
-		        },
-		    ),
+		    html.H1(children='An Interactive Dashboard for Educational Datasets', className='twelve columns'),
 		    html.Div(children='''
 		                A web application framework for an imbalanced dataset including the learning behaviors of 6,423 students who used an online study tool with different educational topics for the period of one year.
 		                ''',
-		                className='ten columns'
+		                className='twelve columns'
 		        )
 		    ], className="row",
 		    style = {'padding' : '20px' ,
@@ -320,7 +334,7 @@ app.layout = html.Div([
     html.Div([ 
         html.Div([
             html.Div([
-                html.H6("T-SNE Parameters"),
+                html.H6("T-SNE Parameters", id="tsne_h4"),
                 html.Div(
                     children=[
                     Card([
@@ -343,7 +357,7 @@ app.layout = html.Div([
                             min=250,
                             max=1000,
                             step=None,
-                            val=750,
+                            val=500,
                             marks={
                                 i: str(i) for i in [250, 500, 750, 1000]
                             },
@@ -355,7 +369,7 @@ app.layout = html.Div([
                             min=5,
                             max=100,
                             step=None,
-                            val=15,
+                            val=50,
                             marks={i: str(i) for i in [5, 15, 30, 50, 100]},
                         ),
                         NamedSlider(
@@ -367,7 +381,7 @@ app.layout = html.Div([
                             min=10,
                             max=600,
                             step=None,
-                            val=200,
+                            val=400,
                             marks={i: str(i) for i in [10, 100, 200, 400, 600]},
                         ),
                         ])
@@ -384,7 +398,7 @@ app.layout = html.Div([
                     'color': '#3c4861'}
                 ),
             html.Div(
-                className='fivehalf columns',
+                className='six columns',
                 children=dcc.Graph(
                     id='graph-2d-plot-tsne'
                 )
@@ -392,17 +406,17 @@ app.layout = html.Div([
 
             html.Div([
                 html.Div([
-                    html.P("Random Forest classifier"),
+                    html.P("Random Forest classifier considering SMOTE"),
                     ],
                     style = {
                         'padding-top': '20px',
-                        'padding-left': '180px'}
+                        'padding-left': '50px'}
                 ),
                 html.Div(
                     dcc.Graph(id='predict'),
                 ),            
             ], 
-            className= 'fourhalf columns',
+            className= 'four columns',
             style = {
                 'padding-left': '15px',
                 'padding-right': '15px',
@@ -423,7 +437,7 @@ app.layout = html.Div([
 
     dcc.Tabs([
         dcc.Tab(label='Student Answer', children=[
-            # --------------- scatter plots, pie chart and dropdown
+            # --------------- scatter plot and pie chart and dropdown
             html.Div([ 
                 html.Div([
                     html.Div(
@@ -469,7 +483,7 @@ app.layout = html.Div([
         ]),
 
     	dcc.Tab(label='General Distribution', children=[
-            # --------------- histograms and Radio boxes
+            # --------------- main histogram and Radio boxes
             html.Div([       
                 html.Div([
                 	html.Div([
@@ -512,7 +526,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Answer Duration', children=[
-            # --------------- Scatter plots and distribution plots
+            # --------------- distribution and scatter plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -543,7 +557,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Topic Distribution', children=[
-            # ---------------  histograms and scatter plots
+            # ---------------  histograms and distribution plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -573,7 +587,7 @@ app.layout = html.Div([
         ]),
 
         dcc.Tab(label='Activity', children=[
-            # --------------- Pie charts and box plots
+            # --------------- box and pie plots
             html.Div([       
                 html.Div([
                     html.Div([
@@ -613,9 +627,9 @@ app.layout = html.Div([
     # --------------- Footer 
     html.Div([
         html.Div([
-            html.P('Produced by Zeynab (Artemis) Mohseni', className='ten columns'),
-            html.P('Linnaeus University, Spring 2020', 
-                className='two columns', 
+            html.P('Linnaeus University', className='eleven columns'),
+            html.P('   Spring 2020', 
+                className='one column', 
                 style={
                     'float': 'right',
                     'position': 'relative'
@@ -675,7 +689,7 @@ def LEDDisplay5(selected_data, column):
     Max = round(dff[column].max(), 2)
     return str(Max)
 
-# ------------------ sliders to TSNE
+# ------------------ connecting sliders to TSNE
 @app.callback(
     Output("graph-2d-plot-tsne", "figure"),
     [
@@ -697,49 +711,90 @@ def display_2d_scatter_plot(n_components,iterations, perplexity, learning_rate):
     tsne_results = tsne.fit_transform(X) 
 
     fig = px.scatter(
-        data_frame = df_X,
+        data_frame = df5,
         x= tsne_results[:,0],
         y= tsne_results[:,1],
-        color= df1['Monthly activity'],
+        color=y, 
         height = 400,
-        title = 'T-SNE for student monthly activity',
+        title = 'T-SNE for student activity in different university IDs',
         labels ={'x':'', 'y':''},
         color_continuous_scale='Picnic'
     )   
     return fig
 
-# ------------------------ Heatmap
+# ------------------------ heatmap
 def heatmap1(selected_data, column):
     if selected_data:
         indices = [point['pointIndex'] for point in selected_data['points']]
-        dff = df1.iloc[indices, :]
+        dff = df5.iloc[indices, :]
     else:
-        dff = df1
+        dff = df5
 
-    df_X = df_predict
+    # ----------------------- Prediction -------------------
+    #df8.shape (default) -> (6423, 1) (with '9')
+    df8 = df6.reindex(dff.index)
+    df8.fillna(9, inplace=True)
+    df8.isna().sum().sum()
+    df8[column] = df8[column].astype(int)
 
-    df_Y = df_predict.iloc[:,[4]]
+    if len(df8[column].value_counts()) == 9:
+        number = df8[column].value_counts().max()
+        X1 = dff
+        Y1 = df8.values.ravel()
+        X1, y1 = shuffle(X1, Y1, random_state=0)
+        # ------------------------- SMOTE ----------------------
+        # increace the rows of first table from 6423 to 30258 (X1 is new df)(default) --> because of class 9 which has 3362 values: 3362 * 9
+        X1, y1 = SMOTE().fit_resample(X1, y1)
+        # increace the rows of second table from 6423 to 30258 (X2 is new df1) (default)--> because of class 9 which has 3362 values: 3362 * 9
+        X2 = df8
+        X2, y1 = shuffle(X2, Y1, random_state=0)
+        X2, y1 = SMOTE().fit_resample(X2, y1)
 
-    X = df_X
-    Y = df_Y.values.ravel()
+        model = RandomForestClassifier(n_estimators=100)
+        y_pred = cross_val_predict(model, X1, y1, cv=10)
+        # calculate accuracy
+        accuracy = accuracy_score(y1, y_pred)
+        # confusion matrix
+        conf_mx = confusion_matrix(y1, y_pred)
+        conf_mx1 = (conf_mx/number*100).round()
+        fig = ff.create_annotated_heatmap(conf_mx1, colorscale='Picnic', x=axis_labels, y=axis_labels, showscale= True)
+        fig.update_layout(title_text="Performance of Random Forest classifier = %.2f" %(accuracy*100) +"%", titlefont=dict(size=15),
+            yaxis_title = "University ID", 
+            height = 349,
+            xaxis=dict(side="bottom",))  
+        return fig
 
-    # shuffle data
-    X, y = shuffle(X, Y, random_state=0)
-    number = df_X[column].value_counts().max()
+    elif len(df8[column].value_counts()) < 9:
+        df9 = df6.reindex(df5.index)
+        df9.fillna(9, inplace=True)
+        df9.isna().sum().sum()
+        df9[column] = df9[column].astype(int)
+        number = df9[column].value_counts().max()
+        X1 = df5
+        Y1 = df9.values.ravel()
+        X1, y1 = shuffle(X1, Y1, random_state=0)
+        # ------------------------- SMOTE ----------------------
+        # increace the rows of first table from 6423 to 30258 (X1 is new df)(default) --> because of class 9 which has 3362 values: 3362 * 9
+        X1, y1 = SMOTE().fit_resample(X1, y1)
+        # increace the rows of second table from 6423 to 30258 (X2 is new df1) (default)--> because of class 9 which has 3362 values: 3362 * 9
+        X2 = df9
+        X2, y1 = shuffle(X2, Y1, random_state=0)
+        X2, y1 = SMOTE().fit_resample(X2, y1)
 
-    model = RandomForestClassifier(n_estimators=100)
-    y_pred = cross_val_predict(model, X, y, cv=10)
-    # calculate accuracy
-    accuracy = accuracy_score(y, y_pred)
-    # confusion matrix
-    conf_mx = confusion_matrix(y, y_pred)
-    conf_mx1 = (conf_mx/number*100).round()
-    fig = ff.create_annotated_heatmap(conf_mx1, colorscale='Picnic', x=axis_labels, y=axis_labels, showscale= True)
-    fig.update_layout(title_text="Classification accuracy for students monthly activities = %.2f" %(accuracy*100) +"%", titlefont=dict(size=15),
-        yaxis_title = "Month", 
-        height = 349,
-        xaxis=dict(side="bottom",))  
-    return fig
+        model = RandomForestClassifier(n_estimators=100)
+        y_pred = cross_val_predict(model, X1, y1, cv=10)
+        # calculate accuracy
+        accuracy = accuracy_score(y1, y_pred)
+        # confusion matrix
+        conf_mx = confusion_matrix(y1, y_pred)
+        conf_mx1 = (conf_mx/number*100).round()
+        fig = ff.create_annotated_heatmap(conf_mx1, colorscale='Picnic', x=axis_labels, y=axis_labels, showscale= True)
+        fig.update_layout(title_text="Performance of Random Forest classifier = %.2f" %(accuracy*100) +"%", titlefont=dict(size=15),
+            yaxis_title = "University ID", 
+            height = 349,
+            xaxis=dict(side="bottom",))   
+        return fig
+
 
 # ------------------ Dropdown to scatter plot - 1st tab: student answer
 @app.callback(Output('cluster1', 'figure'),
@@ -781,6 +836,21 @@ def update_image_src1(input1, input2):
             labels ={'Topic ID':'Topic ID'}
         )
 
+    dff1 = dff.sort_values('Monthly activity', ascending=True)
+    if  input1 == 'Monthly activity':
+        fig = px.scatter(
+            data_frame = dff1,
+            x="Monthly activity",
+            color="Student answer",
+            #size="Answer duration", 
+            height = 400,
+            size_max=20,
+            log_x=True, 
+            hover_data=dff1.columns,
+            title = 'Students answers according to student monthly activity',
+            labels ={'Monthly activity':'Month'}
+        )
+
     dff1 = dff.sort_values('Daily activity', ascending=True)
     if  input1 == 'Daily activity':
         fig = px.scatter(
@@ -811,7 +881,6 @@ def update_image_src1(input1, input2):
             labels ={'Hourly activity':'Hour'}
         )
     return fig
-
 
 # ------------------------ pie chart - 1st tab: student answer
 def pie1(selected_data, column):
@@ -1058,7 +1127,7 @@ def pie3(selected_data, column):
     )
     return fig
 
-# ------------------------box plot_Monthly acitvity definition - 5th tab: Activity
+ # ------------------------box plot_Monthly acitvity definition - 5th tab: Activity
 def box(selected_data, column):
     if selected_data:
         indices = [point['pointIndex'] for point in selected_data['points']]
@@ -1120,7 +1189,7 @@ def update_N_max(selected_data):
     Output('predict', 'figure'),
     [Input('graph-2d-plot-tsne', 'selectedData')])
 def update_userAnswerCorrect(selected_data):
-    return heatmap1(selected_data, 'Monthly activity')
+    return heatmap1(selected_data, 'UniversityID')
 
 # ------------------ T-SNE to pie chart - 1st tab: student answer
 @app.callback(
