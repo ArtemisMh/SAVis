@@ -41,4 +41,4 @@ The focus of this research is to develop a dashboard to interact with and analyz
 A dashboard which provides a central location to monitor and analyze the data is the most efficient way to track multiple data sources. Real-time monitoring reduces the hours of analyzing and long line of communication. 
 The main aim of the proposed dashboard is to provide an interactive platform for teachers so they can compare and explore students’ performance by considering different features such as answer duration, topic IDs, student IDs, question type, monthly, daily and hourly students’ activities. This dashboard also allows to pick two special categories belong to each mentioned feature at a time and compare them by different features. Some interactive techniques such as brushing, zoom, pan and filter are supported in the dashboard. In brushing technique, a subset of elements is selected in one view and this selection is updated and maintained in other views.
 
-![GitHub Logo](/Dashboard_Month.png)
+![GitHub Logo](/Dashboard.png)
