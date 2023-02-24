@@ -1,0 +1,16 @@
+os
+scipy
+dash
+dash_bio
+dash_daq 
+pandas 
+numpy
+scikit-learn
+sklearn
+"dask[dataframe]"
+plotly  	
+"notebook>=5.3" "ipywidgets>=7.2"
+dash-bio
+pathlib
+joblib
+imblearn
