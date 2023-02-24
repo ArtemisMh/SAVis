@@ -74,6 +74,7 @@
   .sixhalf.columns                    { width: calc(100% / (12 / 6.5)); }
   .seven.columns                      { width: calc(100% / (12 / 7)); }
   .eight.columns                      { width: calc(100% / (12 / 8)); }
+  .eighthalf.columns                  { width: calc(100% / (12 / 8.5)); }
   .nine.columns                       { width: calc(100% / (12 / 9)); }
   .ten.columns                        { width: calc(100% / (12 / 10)); }
   .eleven.columns                     { width: calc(100% / (12 / 11)); }
