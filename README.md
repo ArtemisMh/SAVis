@@ -18,21 +18,21 @@ we came up with 22 possible pedagogical questions that teachers might want to an
 * PQ1. How many correct and incorrect answers are there in general? 
 * PQ2. What are the maximum and minimum time students spend to answer a question? 
 * PQ3. What is the accuracy of the ML algorithm to classify the students to the right university? 
-PQ4. How many correct and incorrect answers are there for each student? 
-PQ5. How many correct and incorrect answers are there for every topic? 
-PQ6. How many correct and incorrect answers are there per month? PQ7. How many correct and incorrect answers are there per day?
-PQ8. How many correct and incorrect answers are there per hour? PQ9. What are the percentages of correct and incorrect answers in general? 
-PQ10. How many correct and incorrect answers are there for different time categories? 
-PQ11. How many correct and incorrect answers are there for every student category? 
-PQ12. How many correct and incorrect answers are there for every topic category? 
-PQ13. How many correct and incorrect answers are there for every question type? 
-PQ14. How many correct and incorrect answers are there for every month of year/day of month/hour of day? 
-PQ15. What hour of the day are students more active?
-PQ16. What day of month are students more active? 
-PQ17. What month of year are students more active? 
-PQ18. Which topic ID has the highest number of correct answers? PQ19. What are the top 10 topic IDs in which students are more active? 
-PQ20. What is the number of correct answers for top 10 topic IDs?
-PQ21. Which question type is the most common? 
-PQ22. What is the percentage of students' activities in different months of the year?
+* PQ4. How many correct and incorrect answers are there for each student? 
+* PQ5. How many correct and incorrect answers are there for every topic? 
+* PQ6. How many correct and incorrect answers are there per month? PQ7. How many correct and incorrect answers are there per day?
+* PQ8. How many correct and incorrect answers are there per hour? PQ9. What are the percentages of correct and incorrect answers in general? 
+* PQ10. How many correct and incorrect answers are there for different time categories? 
+* PQ11. How many correct and incorrect answers are there for every student category? 
+* PQ12. How many correct and incorrect answers are there for every topic category? 
+* PQ13. How many correct and incorrect answers are there for every question type? 
+* PQ14. How many correct and incorrect answers are there for every month of year/day of month/hour of day? 
+* PQ15. What hour of the day are students more active?
+* PQ16. What day of month are students more active? 
+* PQ17. What month of year are students more active? 
+* PQ18. Which topic ID has the highest number of correct answers? PQ19. What are the top 10 topic IDs in which students are more active? 
+* PQ20. What is the number of correct answers for top 10 topic IDs?
+* PQ21. Which question type is the most common? 
+* PQ22. What is the percentage of students' activities in different months of the year?
 
 ![GitHub Logo](/Dashboard.png)
