@@ -35,4 +35,31 @@ we came up with 22 possible pedagogical questions that teachers might want to an
 * PQ21. Which question type is the most common? 
 * PQ22. What is the percentage of students' activities in different months of the year?
 
+# Publication about SAVis:
+https://ceur-ws.org/Vol-2985/paper2.pdf
+
+# Requirements
+Python 3.9.7
+
+# How to run this tool?
+Create a folder called SAVis in the root folder of your computer by opening the terminal or command prompt. All the files in this repository should be downloaded and placed in the SAVis folder.
+
+```
+mkdir SAVis
+cd SAVis
+```
+
+Install all required packages by running:
+
+```
+pip install -r requirements.txt
+```
+
+Run this app locally with:
+
+```
+python app.py
+```
+
+# Screenshot
 ![GitHub Logo](/Dashboard.png)
